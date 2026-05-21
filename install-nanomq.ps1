@@ -144,9 +144,10 @@ listeners.ws {
 "@
     Write-AsciiFile (Join-Path $installDir "nanomq.conf") ($confText + "`r`n")
 
-$ps1Text = @'
+    $ps1Text = @'
+$StartDir = Get-Location
 $BaseDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-Set-Location $BaseDir
+Push-Location $BaseDir
 $env:NANOMQ_CONF_PATH = Join-Path $BaseDir "nanomq.conf"
 $errFile = Join-Path $BaseDir "nanomq.err.tmp"
 
@@ -162,6 +163,8 @@ finally {
         }
         Remove-Item -LiteralPath $errFile -Force
     }
+    Pop-Location
+    Set-Location $StartDir
 }
 '@
     Write-AsciiFile (Join-Path $installDir "run.ps1") ($ps1Text + "`r`n")
