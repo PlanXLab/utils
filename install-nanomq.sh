@@ -125,11 +125,11 @@ if [ -n "$NEWER_DIR" ]; then
 fi
 
 if [ -n "$SAME_DIR" ]; then
-    echo "NanoMQ $VERSION is already installed in: $SAME_DIR"
-    echo "Run it with:"
-    echo "  cd \"$SAME_DIR\""
-    echo "  ./run"
-    exit 0
+  echo "NanoMQ $VERSION is already installed in: $SAME_DIR"
+  echo "Run it with:"
+  echo "  cd \"$SAME_DIR\""
+  echo "  ./run"
+  exit 0
 fi
 
 for dir in "$INSTALL_ROOT"/nanomq-*; do
@@ -194,18 +194,20 @@ EOF
 
 cat > "$INSTALL_DIR/run" <<'EOF'
 #!/bin/sh
+START_DIR=$(pwd)
 BASE_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 cd "$BASE_DIR"
 export NANOMQ_CONF_PATH="$BASE_DIR/nanomq.conf"
 ERR_FILE="$BASE_DIR/nanomq.err.tmp"
 
-cleanup() {
+cleanup_run() {
   if [ -f "$ERR_FILE" ]; then
     grep -v '^Abort finding default config path$' "$ERR_FILE" >&2 || true
     rm -f "$ERR_FILE"
   fi
+  cd "$START_DIR"
 }
-trap cleanup EXIT INT TERM
+trap cleanup_run EXIT INT TERM
 
 ./nanomq start --conf "$NANOMQ_CONF_PATH" 2> "$ERR_FILE"
 EOF
