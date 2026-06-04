@@ -141,6 +141,8 @@ listeners.tcp {
 listeners.ws {
   bind = "127.0.0.1:8083/mqtt"
 }
+
+log.level = "error"
 "@
     Write-AsciiFile (Join-Path $installDir "nanomq.conf") ($confText + "`r`n")
 
