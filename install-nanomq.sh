@@ -1,4 +1,10 @@
 #!/bin/sh
+
+# Installer of nanoMQ
+# @version: 1.1
+# @platforms: Linux/MacOS
+# @author: PlanXLab Development Team
+
 set -eu
 
 INSTALL_ROOT="${1:-$HOME}"
