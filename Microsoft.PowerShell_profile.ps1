@@ -1,5 +1,8 @@
 # PowerShell Profile for Portable VSCode (PVS)
 # This profile initializes the portable environment with custom modules and tools
+# @version: 1.1
+# @platforms: Windows
+# @author: PlanXLab Development Team
 
 $Base    = $PSScriptRoot
 $Bin     = Join-Path $Base 'bin'
@@ -96,6 +99,7 @@ function clh {
     }
     [Microsoft.PowerShell.PSConsoleReadLine]::ClearHistory()
     Clear-History
+    Clear-Host
 }
 
 # zsh style/alias
