@@ -1,3 +1,9 @@
+<#
+  Installer of nanoMQ 
+  @version: 1.1
+  @platforms: Windows
+  @author: PlanXLab Development Team
+#>
 param(
     [string]$InstallRoot = $HOME
 )
