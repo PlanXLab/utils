@@ -1,3 +1,9 @@
+/*
+  * VSCode Settings
+  * @version: 1.1
+  * @platforms: *
+  * @author: PlanXLab Development Team
+*/
 {
   "files.autoSave": "onFocusChange",
   "files.autoSaveDelay": 500,
