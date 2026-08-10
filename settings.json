@@ -1,12 +1,13 @@
 /*
   * VSCode Settings
-  * @version: 1.1
+  * @version: 1.2
   * @platforms: *
   * @author: PlanXLab Development Team
 */
 {
   "files.autoSave": "onFocusChange",
   "files.autoSaveDelay": 500,
+  "files.autoGuessEncoding": true,
   "files.exclude": {
     "**/__pycache__": true,
     "**/.venv": true,
@@ -45,6 +46,7 @@
 
   "security.workspace.trust.untrustedFiles": "newWindow",
   "window.commandCenter": false,
+  "window.titleBarStyle": "custom",
 
   "terminal.integrated.mouseWheelZoom": true,
   "terminal.integrated.fontSize": 14,
