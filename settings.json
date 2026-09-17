@@ -1,19 +1,15 @@
 /*
   * VSCode Settings
-  * @version: 1.2
+  * @version: 1.3
   * @platforms: *
   * @author: PlanXLab Development Team
 */
 {
   "files.autoSave": "onFocusChange",
-  "files.autoSaveDelay": 500,
-  "files.autoGuessEncoding": true,
   "files.exclude": {
     "**/__pycache__": true,
     "**/.venv": true,
-    "**/.vscode": true,
     "**/.temp": true,
-    "**/.git": true
   },
   "files.watcherExclude": {
     "**/.git/objects/**": true,
@@ -46,7 +42,6 @@
 
   "security.workspace.trust.untrustedFiles": "newWindow",
   "window.commandCenter": false,
-  "window.titleBarStyle": "custom",
 
   "terminal.integrated.mouseWheelZoom": true,
   "terminal.integrated.fontSize": 14,
@@ -77,14 +72,15 @@
     "reportMissingModuleSource": "none"
   },
   "python.analysis.exclude": [
-    "**/__pycache__",
-    "**/.venv",
-    "**/.vscode",
-    "**/build",
-    "**/dist",
-    "**/.git"
+    "**/__pycache__/**",
+    "**/.venv/**",
+    "**/.vscode/**",
+    "**/build/**",
+    "**/dist/**",
+    "**/.git/**"
   ],
 
   "explorer.confirmDelete": false,
   "explorer.confirmPasteNative": false
 }
+
