@@ -1,86 +1,93 @@
-/*
-  * VSCode Settings
-  * @version: 1.3
-  * @platforms: *
-  * @author: PlanXLab Development Team
-*/
 {
   "files.autoSave": "onFocusChange",
   "files.exclude": {
     "**/__pycache__": true,
     "**/.venv": true,
     "**/.temp": true,
+    "**/.git": true
   },
   "files.watcherExclude": {
     "**/.git/objects/**": true,
     "**/.git/subtree-cache/**": true,
     "**/dist/**": true,
     "**/build/**": true,
-    "**/.vscode/**": true,
     "**/.cache/**": true,
-    "**/__pycache__/**": true,
-    "**/.venv/**": true
+    "**/.venv/**": true,
+    "**/__pycache__/**": true
   },
   "search.exclude": {
     "**/dist/**": true,
     "**/build/**": true,
-    "**/__pycache__/**": true,
-    "**/.venv/**": true,
-    "**/.git/**": true
+    "**/.venv/**": true
   },
   "editor.mouseWheelZoom": true,
-  "editor.fontFamily": "'0xProto Nerd Font', DalseoHealing",
+  "editor.fontFamily": "'0xProto Nerd Font', 'DalseoHealing'",
   "editor.minimap.enabled": false,
   "editor.renderWhitespace": "boundary",
   "editor.cursorSmoothCaretAnimation": "on",
   "editor.smoothScrolling": true,
+  "editor.fontLigatures": true,
+  "editor.lineHeight": 1.5,
 
-  "workbench.colorTheme": "One Dark Pro Darker",
-  "workbench.iconTheme": "ayu",
   "workbench.startupEditor": "none",
   "workbench.tree.indent": 22,
-
-  "security.workspace.trust.untrustedFiles": "newWindow",
+  "workbench.colorTheme": "Ayu Mirage Bordered",
+  "workbench.iconTheme": "ayu",
+  
   "window.commandCenter": false,
-
+  
   "terminal.integrated.mouseWheelZoom": true,
   "terminal.integrated.fontSize": 14,
   "terminal.explorerKind": "integrated",
   "terminal.integrated.suggest.enabled": false,
-  "terminal.integrated.shellIntegration.enabled": false,
   "terminal.integrated.minimumContrastRatio": 1,
-  "terminal.integrated.env.windows": {
-    "PATH": "${execPath}\\..\\bin;${execPath}\\..\\data\\lib\\python;${execPath}\\..\\data\\lib\\python\\Scripts;${execPath}\\..\\data\\lib\\pwsh;${execPath}\\..\\data\\lib\\pwsh\\bin;${env:PATH}"
-  },
+
+  "terminal.integrated.sendKeybindingsToShell": true,
+  "terminal.integrated.commandsToSkipShell": [
+    "-workbench.action.quickOpenNavigateNextInRecentFilesPicker",
+    "-workbench.action.terminal.findNext"
+  ],
+  "terminal.integrated.allowChords": false,
+  "terminal.integrated.shellIntegration.enabled": false,
 
   "terminal.integrated.defaultProfile.windows": "PowerShell 7 (portable)",
 
   "terminal.integrated.profiles.windows": {
     "PowerShell 7 (portable)": {
-      "path": "${execPath}\\..\\data\\lib\\pwsh\\pwsh.exe",
-      "args": ["-NoLogo"],
+      "path": "${env:VSCODE_PORTABLE}\\lib\\pwsh\\pwsh.exe",
+      "args": [
+        "-NoLogo",
+        "-NoProfile",
+        "-NoExit",
+        "-Command",
+        ". \"$env:VSCODE_PORTABLE\\lib\\pwsh\\Microsoft.PowerShell_profile.ps1\""
+      ],
       "icon": "terminal-powershell"
     }
   },
 
-  "python.defaultInterpreterPath": "${execPath}\\..\\data\\lib\\python\\python.exe",
-  "python.terminal.activateEnvironment": false,
-  "python.venvFolders": [],
-  "python.useEnvironmentsExtension": false,
-  "python.createEnvironment.trigger": "off",
+  "python.terminal.activateEnvironment": true,
+  "python.useEnvironmentsExtension": true,
+  "python-envs.alwaysUseUv": true,
+  "python-envs.terminal.autoActivationType": "command",
+  "python.analysis.extraPaths": [
+    "${execPath}/../data/venvs/global/Lib/site-packages"
+  ],
   "python.analysis.diagnosticSeverityOverrides": {
     "reportMissingModuleSource": "none"
   },
   "python.analysis.exclude": [
-    "**/__pycache__/**",
-    "**/.venv/**",
-    "**/.vscode/**",
-    "**/build/**",
-    "**/dist/**",
-    "**/.git/**"
+    "**/__pycache__",
+    "**/.venv",
+    "**/.vscode",
+    "**/build",
+    "**/dist",
+    "**/.git"
   ],
 
   "explorer.confirmDelete": false,
-  "explorer.confirmPasteNative": false
-}
+  "explorer.confirmPasteNative": false,
 
+  "update.mode": "none",
+  "update.showReleaseNotes": false
+}
