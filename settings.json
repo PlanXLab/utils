@@ -65,7 +65,17 @@
       "icon": "terminal-powershell"
     }
   },
-
+  
+  "terminal.integrated.env.windows": {
+    "WORKSPACE_ROOT": "${workspaceFolder}"
+  },
+  "terminal.integrated.env.osx": {
+    "WORKSPACE_ROOT": "${workspaceFolder}"
+  },
+  "terminal.integrated.env.linux": {
+    "WORKSPACE_ROOT": "${workspaceFolder}"
+  },
+  
   "python.terminal.activateEnvironment": true,
   "python.useEnvironmentsExtension": true,
   "python-envs.alwaysUseUv": true,
