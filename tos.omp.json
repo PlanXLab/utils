@@ -1,36 +1,77 @@
 {
   "$schema": "https://githubusercontent.com",
   "version": 4,
+  "async": true,
   "final_space": true,
   "shell_integration": true,
-  "console_title_template": "{{ if .Root }}[Admin] {{ end }}{{ .Shell }} · {{ .Folder }}",
+  "enable_cursor_positioning": true,
+  "console_title_template": "{{ if .Root }}[Admin] {{ end }}{{ if .SSHSession }}[SSH:{{ .HostName }}] {{ end }}{{ .Shell }} · {{ .Folder }}",
   "palette": {
-    "path": "#ABB2BF",
-    "accent": "#61AFEF",
-    "folder": "#E5C07B",
-    "clean": "#98C379",
-    "changed": "#D19A66",
-    "error": "#E06C75",
-    "info": "#56B6C2",
+    "path": "#CCCAC2",
+    "accent": "#73D0FF",
+    "bracket": "#9E7A47",
+    "folder": "#FFCC66",
+    "folder_error": "#FF857A",
+    "folder_icon": "#B88B4D",
+    "folder_icon_error": "#D95757",
+    "clean": "#87D96C",
+    "changed": "#F29E74",
+    "error": "#F28779",
+    "info": "#5CCFE6",
     "rust": "#DEA584",
-    "cpp": "#C678DD",
-    "muted": "#7F848E",
-    "rail": "#4B5263"
+    "cpp": "#DFBFFF",
+    "muted": "#707A8C",
+    "rail": "#4A5368"
   },
   "transient_prompt": {
     "background": "transparent",
     "foreground": "p:muted",
     "foreground_templates": [
-      "{{ if gt .Code 0 }}p:error{{ end }}"
+      "{{ if ne .Code 0 }}p:error{{ end }}"
     ],
-    "template": "❯ ",
+    "template": "\u276f ",
     "newline": false
   },
   "secondary_prompt": {
     "background": "transparent",
-    "foreground": "p:rail",
-    "template": "│ ❯ "
+    "foreground": "p:bracket",
+    "template": "│ <p:muted>\u276f</> "
   },
+  "tooltips_action": "prepend",
+  "tooltips": [
+    {
+      "type": "kubectl",
+      "tips": [
+        "kubectl",
+        "k",
+        "helm"
+      ],
+      "style": "plain",
+      "foreground": "p:info",
+      "template": " \udb84\udcfe {{ .Context }}{{ if .Namespace }}:{{ .Namespace }}{{ end }} <p:rail>┆</> "
+    },
+    {
+      "type": "aws",
+      "tips": [
+        "aws",
+        "terraform",
+        "tf"
+      ],
+      "style": "plain",
+      "foreground": "p:changed",
+      "template": " \ue7ad {{ .Profile }}{{ if .Region }}@{{ .Region }}{{ end }} <p:rail>┆</> "
+    },
+    {
+      "type": "docker",
+      "tips": [
+        "docker",
+        "docker-compose"
+      ],
+      "style": "plain",
+      "foreground": "p:accent",
+      "template": " \uf308 {{ .Context }} <p:rail>┆</> "
+    }
+  ],
   "blocks": [
     {
       "type": "prompt",
@@ -40,25 +81,31 @@
         {
           "type": "text",
           "style": "plain",
-          "foreground": "p:accent",
+          "foreground": "p:bracket",
           "foreground_templates": [
-            "{{ if gt .Code 0 }}p:error{{ end }}"
+            "{{ if ne .Code 0 }}p:error{{ end }}"
           ],
-          "template": "┌─ "
+          "template": "╭─ "
         },
         {
           "type": "os",
           "style": "plain",
           "foreground": "p:path",
           "options": {
-            "windows": "",
-            "macos": "",
-            "linux": "",
-            "ubuntu": "",
-            "debian": "",
-            "raspbian": "",
-            "arch": "",
-            "fedora": ""
+            "windows": "\ue62a",
+            "macos": "\uf179",
+            "linux": "\uf17c",
+            "ubuntu": "\uf31b",
+            "debian": "\uf306",
+            "raspbian": "\uf315",
+            "arch": "\uf303",
+            "fedora": "\uf30a",
+            "centos": "\uf304",
+            "redhat": "\uf316",
+            "alpine": "\uf300",
+            "nixos": "\uf313",
+            "manjaro": "\uf312",
+            "opensuse": "\uf314"
           },
           "template": "{{ .Icon }}"
         },
@@ -69,12 +116,15 @@
           "foreground_templates": [
             "{{ if .Root }}p:error{{ else if .SSHSession }}p:info{{ end }}"
           ],
-          "template": "{{ if .Root }}  admin{{ else }} {{ .UserName }}@{{ if gt (len .HostName) 8 }}{{ trunc 7 .HostName }}…{{ else }}{{ .HostName }}{{ end }}{{ end }}"
+          "template": "{{ if .Root }} \uf21b admin{{ else if .SSHSession }} \udb80\udcc0 {{ .UserName }}@{{ if gt (len .HostName) 10 }}{{ trunc 9 .HostName }}…{{ else }}{{ .HostName }}{{ end }}{{ else }} {{ .UserName }}@{{ if gt (len .HostName) 8 }}{{ trunc 7 .HostName }}…{{ else }}{{ .HostName }}{{ end }}{{ end }}"
         },
         {
           "type": "path",
           "style": "plain",
-          "foreground": "p:path",
+          "foreground": "p:folder",
+          "foreground_templates": [
+            "{{ if ne .Code 0 }}p:folder_error{{ end }}"
+          ],
           "options": {
             "style": "agnoster_short",
             "max_depth": 3,
@@ -82,9 +132,10 @@
             "home_icon": "~",
             "folder_separator_icon": "<p:muted>/</>",
             "left_format": "<p:muted>%s</>",
-            "right_format": "<p:folder><b>%s</b></>"
+            "folder_format": "<p:muted>%s</>",
+            "right_format": "%s"
           },
-          "template": " <p:rail>┆</> <p:accent></> {{ .Path }}{{ if eq .OS \"windows\" }}{{ if and (not .Root) (matchP \"(?i)^[a-z]:[/\\\\\\\\](Windows|Program Files( \\\\(x86\\\\))?|ProgramData)([/\\\\\\\\]|$)\" .Location) }} <p:error></>{{ end }}{{ else if not .Writable }} <p:error></>{{ end }}"
+          "template": " <p:rail>┆</> {{ if ne .Code 0 }}<p:folder_icon_error>\uf07b</>{{ else }}<p:folder_icon>\uf07b</>{{ end }} {{ if not (contains \"/\" .Path) }}{{ if ne .Code 0 }}<p:folder_error>{{ .Path }}</>{{ else }}<p:folder>{{ .Path }}</>{{ end }}{{ else }}{{ .Path }}{{ end }}{{ if eq .Env.OS \"Windows_NT\" }}{{ if and (not .Root) (matchP \"(?i)^[a-z]:[/\\\\\\\\](Windows|Program Files( \\\\(x86\\\\))?|ProgramData)([/\\\\\\\\]|$)\" .Location) }} <p:error>\uf023</>{{ end }}{{ else if not .Writable }} <p:error>\uf023</>{{ end }}"
         },
         {
           "type": "git",
@@ -96,15 +147,18 @@
           ],
           "options": {
             "fetch_status": true,
-            "fetch_stash_count": true,
             "fetch_upstream_icon": true,
+            "native_fallback": true,
+            "untracked_modes": {
+              "*": "normal"
+            },
             "branch_max_length": 24,
             "truncate_symbol": "…",
-            "branch_icon": " ",
-            "commit_icon": " ",
-            "tag_icon": " "
+            "branch_icon": "\ue0a0 ",
+            "commit_icon": "\uf417 ",
+            "tag_icon": "\uf412 "
           },
-          "template": " <p:rail>┆</> {{ if .UpstreamIcon }}{{ .UpstreamIcon }} {{ end }}{{ .HEAD }}{{ if .BranchStatus }} {{ .BranchStatus }}{{ end }}{{ if .Staging.Changed }} <p:clean>+{{ .Staging.Added }} ~{{ .Staging.Modified }} -{{ .Staging.Deleted }}</>{{ end }}{{ if .Working.Changed }} <p:changed>~{{ .Working.Modified }} ?{{ .Working.Untracked }}</>{{ end }}{{ if gt .StashCount 0 }} <p:muted> {{ .StashCount }}</>{{ end }}"
+          "template": " <p:rail>┆</> {{ if .UpstreamIcon }}{{ .UpstreamIcon }} {{ end }}{{ .HEAD }}{{ if .BranchStatus }} {{ .BranchStatus }}{{ end }}{{ if .Staging.Changed }} <p:clean>{{ .Staging.String }}</>{{ end }}{{ if .Working.Changed }} <p:changed>{{ .Working.String }}</>{{ end }}"
         },
         {
           "type": "rust",
@@ -123,7 +177,7 @@
               "rust-toolchain.toml"
             ]
           },
-          "template": " <p:rail>┆</>  {{ .Full }}"
+          "template": " <p:rail>┆</> \ue7a8 {{ .Full }}"
         },
         {
           "type": "cmake",
@@ -148,7 +202,7 @@
               "*.hpp"
             ]
           },
-          "template": " <p:rail>┆</>  {{ if .Full }}cmake {{ .Major }}.{{ .Minor }}{{ else }}C/C++{{ end }}"
+          "template": " <p:rail>┆</> \ue61d {{ if .Full }}cmake {{ .Major }}.{{ .Minor }}{{ else }}C/C++{{ end }}"
         },
         {
           "type": "python",
@@ -166,7 +220,7 @@
               "requirements.txt"
             ]
           },
-          "template": " <p:rail>┆</>  {{ if .Venv }}{{ .Venv }}{{ else }}{{ .Major }}.{{ .Minor }}{{ end }}"
+          "template": " <p:rail>┆</> \ue73c {{ if .Venv }}{{ .Venv }}{{ else }}{{ .Major }}.{{ .Minor }}{{ end }}"
         },
         {
           "type": "text",
@@ -183,6 +237,13 @@
       "filler": "<p:rail>┄</>",
       "segments": [
         {
+          "type": "text",
+          "style": "plain",
+          "min_width": 60,
+          "foreground": "p:info",
+          "template": "{{ if gt .Jobs 0 }} \uf013 {{ .Jobs }} <p:rail>┆</>{{ end }}"
+        },
+        {
           "type": "status",
           "style": "plain",
           "min_width": 60,
@@ -190,7 +251,7 @@
           "options": {
             "always_enabled": false
           },
-          "template": "  {{ .Code }} <p:rail>┆</>"
+          "template": " \uf00d {{ .Code }} <p:rail>┆</>"
         },
         {
           "type": "executiontime",
@@ -202,26 +263,26 @@
             "style": "austin",
             "threshold": 500
           },
-          "template": "  {{ .FormattedMs }} <p:rail>┆</>"
+          "template": " \uf252 {{ .FormattedMs }} <p:rail>┆</>"
         },
         {
           "type": "time",
           "style": "plain",
           "min_width": 50,
-          "foreground": "p:muted",
+          "foreground": "p:path",
           "options": {
             "time_format": "15:04"
           },
-          "template": "  {{ .CurrentDate | date .Format }} "
+          "template": " {{ if ne .Code 0 }}<p:error>\uf017</>{{ else }}<p:bracket>\uf017</>{{ end }} {{ .CurrentDate | date .Format }} "
         },
         {
           "type": "text",
           "style": "plain",
-          "foreground": "p:accent",
+          "foreground": "p:bracket",
           "foreground_templates": [
-            "{{ if gt .Code 0 }}p:error{{ end }}"
+            "{{ if ne .Code 0 }}p:error{{ end }}"
           ],
-          "template": "─┐"
+          "template": "─╮"
         }
       ]
     },
@@ -233,20 +294,20 @@
         {
           "type": "text",
           "style": "plain",
-          "foreground": "p:accent",
+          "foreground": "p:bracket",
           "foreground_templates": [
-            "{{ if gt .Code 0 }}p:error{{ end }}"
+            "{{ if ne .Code 0 }}p:error{{ end }}"
           ],
-          "template": "└─ "
+          "template": "╰─ "
         },
         {
           "type": "text",
           "style": "plain",
           "foreground": "p:clean",
           "foreground_templates": [
-            "{{ if gt .Code 0 }}p:error{{ end }}"
+            "{{ if ne .Code 0 }}p:error{{ end }}"
           ],
-          "template": "󰶻"
+          "template": "\udb83\uddbb"
         }
       ]
     },
@@ -257,11 +318,12 @@
         {
           "type": "text",
           "style": "plain",
-          "foreground": "p:accent",
+          "min_width": 50,
+          "foreground": "p:bracket",
           "foreground_templates": [
-            "{{ if gt .Code 0 }}p:error{{ end }}"
+            "{{ if ne .Code 0 }}p:error{{ end }}"
           ],
-          "template": "─┘"
+          "template": "─╯"
         }
       ]
     }
