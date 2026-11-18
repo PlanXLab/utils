@@ -42,7 +42,7 @@ function Add-PortablePath ([string]$Name, [string[]]$Directories) {
 }
 
 # ---------------------------------------------------------------------------
-# 1. Unified Static Cache (with Portable Path Relocation Guard)
+# Unified Static Cache (with Portable Path Relocation Guard)
 # ---------------------------------------------------------------------------
 $UnifiedCacheFile = "$CacheDir\codenix-fast-init-v3.ps1"
 $ExpectedHeader   = "# ROOT: $InstallRoot"
@@ -143,7 +143,7 @@ if (Get-Command -Name Enable-PoshTransientPrompt -CommandType Function -ErrorAct
 }
 
 # ---------------------------------------------------------------------------
-# 2. PSReadLine Configuration
+# PSReadLine Configuration
 # ---------------------------------------------------------------------------
 $HistoryPath = "$PortableData\user-data\PowerShell\History.txt"
 $historyDir  = [System.IO.Path]::GetDirectoryName($HistoryPath)
@@ -171,7 +171,7 @@ try {
 }
 
 # ---------------------------------------------------------------------------
-# 3. LSD Wrapper & Aliases
+# LSD Wrapper & Aliases
 # ---------------------------------------------------------------------------
 $script:LsdRootIgnores = @(
     '--ignore-glob', 'pagefile.sys',
@@ -223,7 +223,7 @@ function ll { Invoke-CodeNixLsd -l @args }
 function la { Invoke-CodeNixLsd -la @args }
 
 # ---------------------------------------------------------------------------
-# 4. Lazy PSFzf & History Search
+# Lazy PSFzf & History Search
 # ---------------------------------------------------------------------------
 $script:CodeNixPSFzfModule = $null
 
@@ -287,7 +287,7 @@ function Invoke-LazyPsFzf ([string]$TargetKey) {
 }
 
 # ---------------------------------------------------------------------------
-# 5. Fast .NET Path Completion
+# Fast .NET Path Completion
 # ---------------------------------------------------------------------------
 function Get-CodeNixPathCompletion ([string]$Word, [switch]$DirectoriesOnly) {
     $path = $Word
@@ -415,7 +415,7 @@ Register-ArgumentCompleter -CommandName $targetCmds -ParameterName Path -ScriptB
 Register-ArgumentCompleter -CommandName $targetCmds -ParameterName LiteralPath -ScriptBlock $pathCompleter
 
 # ---------------------------------------------------------------------------
-# 6. Python & replx Integration
+# Python & replx Integration
 # ---------------------------------------------------------------------------
 function Get-CodeNixPythonEnvironment {
     $isActivated = -not [string]::IsNullOrWhiteSpace($env:VIRTUAL_ENV)
@@ -513,7 +513,7 @@ function global:python {
 Set-Alias -Name py -Value python -Scope Global -Force
 
 # ---------------------------------------------------------------------------
-# 7. Unix Utilities & Shell Helpers
+# Unix Utilities & Shell Helpers
 # ---------------------------------------------------------------------------
 function which ([string]$Command) {
     if ([string]::IsNullOrWhiteSpace($Command)) { return }
