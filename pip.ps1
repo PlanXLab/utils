@@ -25,23 +25,22 @@ function ConvertTo-PipArgumentList {
     param([AllowEmptyString()][string]$InputText)
 
     if ([string]::IsNullOrWhiteSpace($InputText)) {
-        return @()
+        return [string[]]@()
     }
 
-    # Correctly split arguments enclosed in quotes and regular space-separated arguments (index specified)
+    # Accurately separate arguments enclosed in quotes and regular space-separated arguments
     $regexMatches = [regex]::Matches($InputText, '"([^"]*)"|''([^'']*)''|(\S+)')
-    $arguments = foreach ($m in $regexMatches) {
+    [string[]]$arguments = foreach ($m in $regexMatches) {
         if ($m.Groups[1].Success) { $m.Groups[1].Value }
         elseif ($m.Groups[2].Success) { $m.Groups[2].Value }
         else { $m.Groups[3].Value }
     }
-    return @($arguments)
+    return $arguments
 }
 
 function Invoke-UvAndExit {
-    param([string[]]$Arguments)
+    param([string[]]$Arguments = @())
 
-    # Isolate uv.exe's stderr warning/error messages to prevent them from being converted into PowerShell exceptions (NativeCommandError)
     $prevErrorAction = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
     try {
@@ -70,10 +69,10 @@ if (-not (Test-Path -LiteralPath $script:UvExecutable -PathType Leaf)) {
     throw "CodeNix uv was not found at '$script:UvExecutable'."
 }
 
-# Prevent PowerShell's '=' and '-V' parameter interception by using $args instead of param()
-$rawArgs = @($args | ForEach-Object { [string]$_ })
-$Command = if ($rawArgs.Count -gt 0) { $rawArgs[0] } else { '' }
-$safeArgs = if ($rawArgs.Count -gt 1) { @($rawArgs[1..($rawArgs.Count - 1)]) } else { @() }
+# Casting to [string[]] to strictly maintain array state (.Count property) even when there are 0 or 1 elements
+[string[]]$rawArgs = @($args | ForEach-Object { [string]$_ })
+[string]$Command = if ($rawArgs.Count -gt 0) { $rawArgs[0] } else { '' }
+[string[]]$safeArgs = if ($rawArgs.Count -gt 1) { @($rawArgs | Select-Object -Skip 1) } else { @() }
 
 # Handling version output (pip --version / pip -V)
 if ($Command -ceq '-V' -or $Command -ceq '--version') {
@@ -97,7 +96,7 @@ if ([string]::IsNullOrWhiteSpace($Command) -or $Command -in @('-h', '--help')) {
 
 if ($Command -eq 'help') {
     if ($safeArgs.Count -gt 0) {
-        $restHelpArgs = if ($safeArgs.Count -gt 1) { @($safeArgs[1..($safeArgs.Count - 1)]) } else { @() }
+        [string[]]$restHelpArgs = if ($safeArgs.Count -gt 1) { @($safeArgs | Select-Object -Skip 1) } else { @() }
         Invoke-UvAndExit (@('pip', $safeArgs[0], '--help') + $restHelpArgs)
     }
     Invoke-UvAndExit @('pip', '--help')
@@ -121,7 +120,7 @@ if ($Command -eq 'install' -and $safeArgs.Count -eq 0) {
         exit 0
     }
 
-    $safeArgs = @(ConvertTo-PipArgumentList $installInput)
+    [string[]]$safeArgs = @(ConvertTo-PipArgumentList $installInput)
     if ($safeArgs.Count -eq 0) {
         Write-Output 'Install cancelled: no package was specified.'
         exit 0
