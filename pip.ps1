@@ -2,13 +2,6 @@
 .SYNOPSIS
     Run uv pip commands against the active virtual environment or CodeNix's global Python environment.
 #>
-param(
-    [Parameter(Position = 0, Mandatory = $false)]
-    [string]$Command,
-
-    [Parameter(ValueFromRemainingArguments = $true)]
-    [string[]]$RemainingArgs
-)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -35,16 +28,12 @@ function ConvertTo-PipArgumentList {
         return @()
     }
 
-    $parseErrors = $null
-    $tokens = [System.Management.Automation.PSParser]::Tokenize($InputText, [ref]$parseErrors)
-    if ($parseErrors -and $parseErrors.Count -gt 0) {
-        throw "Invalid install arguments: $($parseErrors[0].Message)"
-    }
-
-    $arguments = foreach ($token in $tokens) {
-        if ($token.Type -in @('Command', 'CommandArgument', 'String', 'Number')) {
-            $token.Content
-        }
+    # Correctly split arguments enclosed in quotes and regular space-separated arguments (index specified)
+    $regexMatches = [regex]::Matches($InputText, '"([^"]*)"|''([^'']*)''|(\S+)')
+    $arguments = foreach ($m in $regexMatches) {
+        if ($m.Groups[1].Success) { $m.Groups[1].Value }
+        elseif ($m.Groups[2].Success) { $m.Groups[2].Value }
+        else { $m.Groups[3].Value }
     }
     return @($arguments)
 }
@@ -52,8 +41,17 @@ function ConvertTo-PipArgumentList {
 function Invoke-UvAndExit {
     param([string[]]$Arguments)
 
-    & $script:UvExecutable @Arguments
-    exit $LASTEXITCODE
+    # Isolate uv.exe's stderr warning/error messages to prevent them from being converted into PowerShell exceptions (NativeCommandError)
+    $prevErrorAction = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        & $script:UvExecutable @Arguments
+        $exitCode = if ($null -ne $LASTEXITCODE) { $LASTEXITCODE } else { 0 }
+    }
+    finally {
+        $ErrorActionPreference = $prevErrorAction
+    }
+    exit $exitCode
 }
 
 $dataDirectory = Get-PortableDataDirectory
@@ -72,11 +70,24 @@ if (-not (Test-Path -LiteralPath $script:UvExecutable -PathType Leaf)) {
     throw "CodeNix uv was not found at '$script:UvExecutable'."
 }
 
+# Prevent PowerShell's '=' and '-V' parameter interception by using $args instead of param()
+$rawArgs = @($args | ForEach-Object { [string]$_ })
+$Command = if ($rawArgs.Count -gt 0) { $rawArgs[0] } else { '' }
+$safeArgs = if ($rawArgs.Count -gt 1) { @($rawArgs[1..($rawArgs.Count - 1)]) } else { @() }
+
 # Handling version output (pip --version / pip -V)
 if ($Command -ceq '-V' -or $Command -ceq '--version') {
-    $uvVersion = (& $script:UvExecutable --version).Trim()
+    $prevErrorAction = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        $uvVersion = (& $script:UvExecutable --version | Out-String).Trim()
+        $exitCode = if ($null -ne $LASTEXITCODE) { $LASTEXITCODE } else { 0 }
+    }
+    finally {
+        $ErrorActionPreference = $prevErrorAction
+    }
     Write-Output "$uvVersion (python: $pythonEnvironmentDirectory)"
-    exit $LASTEXITCODE
+    exit $exitCode
 }
 
 # Handling calls without arguments and help requests
@@ -85,32 +96,33 @@ if ([string]::IsNullOrWhiteSpace($Command) -or $Command -in @('-h', '--help')) {
 }
 
 if ($Command -eq 'help') {
-    if ($RemainingArgs.Count -gt 0) {
-        Invoke-UvAndExit (@('pip', $RemainingArgs[0], '--help') + @($RemainingArgs | Select-Object -Skip 1))
+    if ($safeArgs.Count -gt 0) {
+        $restHelpArgs = if ($safeArgs.Count -gt 1) { @($safeArgs[1..($safeArgs.Count - 1)]) } else { @() }
+        Invoke-UvAndExit (@('pip', $safeArgs[0], '--help') + $restHelpArgs)
     }
     Invoke-UvAndExit @('pip', '--help')
 }
 
 # cache command-compatible mapping (pip cache -> uv cache)
 if ($Command -eq 'cache') {
-    Invoke-UvAndExit (@('cache') + @($RemainingArgs))
+    Invoke-UvAndExit (@('cache') + $safeArgs)
 }
 
-# Handling of other top-level flags
+# Handling of other top-level flags (ex: pip -v install ...)
 if ($Command.StartsWith('-')) {
-    Invoke-UvAndExit (@('pip', $Command) + @($RemainingArgs))
+    Invoke-UvAndExit (@('pip', $Command) + $safeArgs)
 }
 
 # Interactive installation support
-if ($Command -eq 'install' -and $RemainingArgs.Count -eq 0) {
+if ($Command -eq 'install' -and $safeArgs.Count -eq 0) {
     $installInput = Read-Host 'Enter a package or install target (press Enter to cancel)'
     if ([string]::IsNullOrWhiteSpace($installInput)) {
         Write-Output 'Install cancelled: no package was specified.'
         exit 0
     }
 
-    $RemainingArgs = @(ConvertTo-PipArgumentList $installInput)
-    if ($RemainingArgs.Count -eq 0) {
+    $safeArgs = @(ConvertTo-PipArgumentList $installInput)
+    if ($safeArgs.Count -eq 0) {
         Write-Output 'Install cancelled: no package was specified.'
         exit 0
     }
@@ -126,4 +138,4 @@ if (-not (Test-Path -LiteralPath $pythonExecutable -PathType Leaf) -or
 }
 
 # Execute 'uv pip' command and return exit code
-Invoke-UvAndExit (@('pip', $Command, '--no-config', '--python', $pythonExecutable) + @($RemainingArgs))
+Invoke-UvAndExit (@('pip', $Command, '--no-config', '--python', $pythonExecutable) + $safeArgs)
